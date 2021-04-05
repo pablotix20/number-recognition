@@ -27,17 +27,20 @@ def gen_images(TRAIN_LEN, HEIGHT, WIDTH, OUT_DOWNSCALING, MAX_NUMBERS, src_x, sr
         mask = np.zeros((HEIGHT, WIDTH))
 
         for n in range(MAX_NUMBERS):
-            x = rnd.randint(0, WIDTH-28)
-            y = rnd.randint(0, HEIGHT-28)
+            x = rnd.randint(0, WIDTH-50)
+            y = rnd.randint(0, HEIGHT-50)
             img = rnd.randint(0, src_x.shape[0]-1)
-            if np.count_nonzero(train_x[i, x:x+28, y:y+28]) == 0:
-                train_x[i, x:x+28, y:y+28] = src_x[img]
+            resized_w = int(28*(rnd.random()/2+.75))
+            resized_h = int(28*(rnd.random()/2+.75))
+            src = cv2.resize(src_x[img], (resized_h, resized_w))
+            if np.count_nonzero(train_x[i, x:x+resized_w, y:y+resized_h]) == 0:
+                train_x[i, x:x+resized_w, y:y+resized_h] = src
                 # submask = np.zeros((3), dtype=np.uint8)
                 # submask[mnist_train_y[img] % 2] = 1
                 # mask[x:x+28, y:y+28] = np.where(mnist_train_x[img]
                 #                                 > 0, 1, 0) * (mnist_train_y[img] % 2+1)
-                mask[x:x+28, y:y+28] = np.where(src_x[img]
-                                                > 0, 1, 0) * (src_y[img]+1)
+                mask[x:x+resized_w, y:y +
+                     resized_h] = np.where(src > 0, 1, 0) * (src_y[img]+1)
                 # mask[x:x+28, y:y+28] = np.where(mnist_train_x[img] > 0, 1, 0)
                 # mask[x:x+28, y:y+28] = (mnist_train_y[img] % 2+1)
 
@@ -53,6 +56,10 @@ def gen_images(TRAIN_LEN, HEIGHT, WIDTH, OUT_DOWNSCALING, MAX_NUMBERS, src_x, sr
                            kernel_size=OUT_DOWNSCALING, pool_mode='max')
         # train_y[i] = pool2d(mask, stride=4, padding=0,
         #                    kernel_size=4, pool_mode='max')
+        if rnd.randint(0, 1) == 0:
+            train_x[i] = 255-train_x[i]
+        train_x[i] += np.array(np.random.normal(0, 25, (WIDTH, HEIGHT)))
+        train_x[i] = np.clip(train_x[i], 0, 255)
 
     train_y = np.zeros(
         (TRAIN_LEN, int(HEIGHT/OUT_DOWNSCALING), int(WIDTH/OUT_DOWNSCALING), 11))

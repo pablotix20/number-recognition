@@ -7,8 +7,8 @@ from compress_pickle import load
 from tensorflow.keras import layers, models
 from tensorflow.python.ops.numpy_ops.np_math_ops import inner
 
-BATCH_SIZE = 20
-EPOCHS = 3
+BATCH_SIZE = 10
+EPOCHS = 8
 
 # with open('./gen/mask_data.pickle', 'rb') as handle:
 #     (train_x, train_y) = pickle.load(handle)
