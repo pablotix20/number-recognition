@@ -10,6 +10,10 @@ from tensorflow.python.ops.numpy_ops.np_math_ops import inner
 BATCH_SIZE = 10
 EPOCHS = 8
 
+SEED = 6
+# Set random seeds
+tf.random.set_seed(SEED)
+
 # with open('./gen/mask_data.pickle', 'rb') as handle:
 #     (train_x, train_y) = pickle.load(handle)
 (train_x, train_y, val_x, val_y) = load(
@@ -101,14 +105,15 @@ def get_model(img_size, num_classes):
 model = get_model((128, 128), 11)
 
 model.summary()
-tf.keras.utils.plot_model(model, show_shapes=True,to_file='./gen/model.png')
+tf.keras.utils.plot_model(model, show_shapes=True, to_file='./gen/model.png')
 
 # opt = tf.keras.optimizers.Adam(learning_rate=0.0002)
 
 # model.compile(loss='categorical_crossentropy', metrics=['accuracy'])
 # train_count = int(train_x.shape[0]*TRAIN_LEN)
 # TODO: Sparse categorical
-model.compile(optimizer="rmsprop", loss="categorical_crossentropy")
+model.compile(optimizer="rmsprop",
+              loss="categorical_crossentropy", metrics=['accuracy'])
 # model.fit(train_x[:train_count], train_y[:train_count], batch_size=BATCH_SIZE,
 #           epochs=EPOCHS, validation_data=(train_x[train_count:], train_y[train_count:]))
 model.fit(train_x, train_y, batch_size=BATCH_SIZE,

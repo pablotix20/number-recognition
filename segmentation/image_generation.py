@@ -6,6 +6,7 @@ from tqdm import tqdm
 from compress_pickle import dump
 import cv2
 from max_pool import pool2d
+from background import get_random_background
 
 TRAIN_LEN = 20000
 WIDTH = 128
@@ -34,7 +35,7 @@ def gen_images(TRAIN_LEN, HEIGHT, WIDTH, OUT_DOWNSCALING, MAX_NUMBERS, src_x, sr
             resized_h = int(28*(rnd.random()/2+.75))
             src = cv2.resize(src_x[img], (resized_h, resized_w))
             if np.count_nonzero(train_x[i, x:x+resized_w, y:y+resized_h]) == 0:
-                train_x[i, x:x+resized_w, y:y+resized_h] = src
+                train_x[i, x:x+resized_w, y:y+resized_h] -= src
                 # submask = np.zeros((3), dtype=np.uint8)
                 # submask[mnist_train_y[img] % 2] = 1
                 # mask[x:x+28, y:y+28] = np.where(mnist_train_x[img]
@@ -56,9 +57,10 @@ def gen_images(TRAIN_LEN, HEIGHT, WIDTH, OUT_DOWNSCALING, MAX_NUMBERS, src_x, sr
                            kernel_size=OUT_DOWNSCALING, pool_mode='max')
         # train_y[i] = pool2d(mask, stride=4, padding=0,
         #                    kernel_size=4, pool_mode='max')
-        if rnd.randint(0, 1) == 0:
-            train_x[i] = 255-train_x[i]
-        train_x[i] += np.array(np.random.normal(0, 25, (WIDTH, HEIGHT)))
+        # if rnd.randint(0, 1) == 0:
+        #     train_x[i] = 255-train_x[i]
+        # train_x[i] += np.array(np.random.normal(0, 25, (WIDTH, HEIGHT)))
+        train_x[i] += get_random_background(WIDTH, HEIGHT)
         train_x[i] = np.clip(train_x[i], 0, 255)
 
     train_y = np.zeros(
