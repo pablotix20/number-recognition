@@ -10,7 +10,7 @@ from tensorflow.python.ops.numpy_ops.np_math_ops import inner
 BATCH_SIZE = 10
 EPOCHS = 8
 
-SEED = 6
+SEED = 10
 # Set random seeds
 tf.random.set_seed(SEED)
 
