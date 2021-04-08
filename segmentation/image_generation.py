@@ -8,12 +8,12 @@ import cv2
 from max_pool import pool2d
 from background import get_random_background
 
-TRAIN_LEN = 20000
-WIDTH = 128
-HEIGHT = 128
+TRAIN_LEN = 30000
+WIDTH = 192
+HEIGHT = 192
 OUT_DOWNSCALING = 2
 
-NUMBERS_PER_IMAGE = 6
+NUMBERS_PER_IMAGE = 8
 
 (mnist_train_x, mnist_train_y), (mnist_val_x, mnist_val_y) = mnist.load_data()
 
@@ -28,14 +28,19 @@ def gen_images(TRAIN_LEN, HEIGHT, WIDTH, OUT_DOWNSCALING, MAX_NUMBERS, src_x, sr
         mask = np.zeros((HEIGHT, WIDTH))
 
         for n in range(MAX_NUMBERS):
-            x = rnd.randint(0, WIDTH-50)
-            y = rnd.randint(0, HEIGHT-50)
+            x = rnd.randint(0, WIDTH-100)
+            y = rnd.randint(0, HEIGHT-100)
             img = rnd.randint(0, src_x.shape[0]-1)
-            resized_w = int(28*(rnd.random()/2+.75))
-            resized_h = int(28*(rnd.random()/2+.75))
+            resized_w = int(28*(rnd.random()*2+.8))
+            resized_h = int(28*(rnd.random()*2+.8))
             src = cv2.resize(src_x[img], (resized_h, resized_w))
-            if np.count_nonzero(train_x[i, x:x+resized_w, y:y+resized_h]) == 0:
-                train_x[i, x:x+resized_w, y:y+resized_h] -= src
+            if np.all(train_x[i, x:x+resized_w, y:y+resized_h]==0):
+                # Make numbers thinner
+                kernel = np.ones((2, 2), np.uint8)
+                src = cv2.erode(src, kernel, iterations=1)
+
+                train_x[i, x:x+resized_w, y:y+resized_h] -= src * \
+                    (rnd.random()/2+.25)
                 # submask = np.zeros((3), dtype=np.uint8)
                 # submask[mnist_train_y[img] % 2] = 1
                 # mask[x:x+28, y:y+28] = np.where(mnist_train_x[img]
@@ -57,18 +62,22 @@ def gen_images(TRAIN_LEN, HEIGHT, WIDTH, OUT_DOWNSCALING, MAX_NUMBERS, src_x, sr
                            kernel_size=OUT_DOWNSCALING, pool_mode='max')
         # train_y[i] = pool2d(mask, stride=4, padding=0,
         #                    kernel_size=4, pool_mode='max')
-        # if rnd.randint(0, 1) == 0:
-        #     train_x[i] = 255-train_x[i]
         # train_x[i] += np.array(np.random.normal(0, 25, (WIDTH, HEIGHT)))
         train_x[i] += get_random_background(WIDTH, HEIGHT)
-        train_x[i] = np.clip(train_x[i], 0, 255)
+        if rnd.randint(0, 1) == 0:
+            # train_x[i] = 255-train_x[i]
+            train_x[i] = cv2.GaussianBlur(train_x[i], (3, 3), 0)
+        train_x[i] = np.clip(train_x[i], 0, 255).astype('uint8')
 
     train_y = np.zeros(
-        (TRAIN_LEN, int(HEIGHT/OUT_DOWNSCALING), int(WIDTH/OUT_DOWNSCALING), 11))
+        (TRAIN_LEN, int(HEIGHT/OUT_DOWNSCALING), int(WIDTH/OUT_DOWNSCALING), 11), dtype=np.uint8)
     for i in range(11):
         submask = np.zeros((11), dtype=np.uint8)
         submask[i] = 1
         train_y[mask_y == i] = submask
+    # train_y = np.zeros(
+    #     (TRAIN_LEN, int(HEIGHT/OUT_DOWNSCALING), int(WIDTH/OUT_DOWNSCALING)))
+    # train_y = mask_y
 
     # train_y[mask_y==0]=[1,0,0]
     # train_y[mask_y==1]=[0,1,0]
@@ -98,6 +107,7 @@ for a in range(rows*cols):
 for a in range(rows*cols):
     axes.append(fig.add_subplot(rows, cols*2, rows*cols + a+1))
     axes[-1].set_title(f'asdf')
-    plt.imshow(train_y[a, :, :, :3])
+    # plt.imshow(train_y[a, :, :])
+    plt.imshow(train_y[a, :, :, :3]*255)
 fig.tight_layout()
 plt.show()
