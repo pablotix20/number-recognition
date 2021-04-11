@@ -13,21 +13,28 @@ Uing mnist dataset to create composite images with numbers in multiple lines
 MAX_LINES = 4
 MAX_NUMS_LINE = 6
 
-IN_SIZE = 28
+#img sizes
+IN_SIZE = 28 #square input images
 OUT_SIZE_W = 192
 OUT_SIZE_H = 192
 
-OUT_DOWNSCALING = 2
+OUT_DOWNSCALING = 2 #downscaling of output tags
 TRAIN_LEN = 10000
 
-MAX_SCALE_FACTOR = 1.25
+MAX_SCALE_FACTOR = 1.25 #rescale number factor
 MIN_SCALE_FACTOR = 0.75
 
-KERNEL_SIZE = 2
+KERNEL_SIZE = OUT_DOWNSCALING #convolution kernel size
 
 MIN_OFFSET = 10 #min offset between lines
-OFF_Y_MU = 0
+MIN_OFFSET_X = 10 #min offset of the start of a line
+
+OFF_X_MU = 5 #offset between numbers in a line
+OFF_X_SIGMA = 5 
+
+OFF_Y_MU = 0 #variation around the start y position of a line
 OFF_Y_SIGMA = 3 
+
 JUMP_P = 0.2 #probability of jumping within a line and between lines
 
 mnist = tf.keras.datasets.mnist
@@ -66,8 +73,8 @@ def inline_img_gen(src_x, src_y):
 
         for l in range(lines):
             y = int(random.triangular(min_off, mode_off, max_off) + l * IN_SIZE * MAX_SCALE_FACTOR 
-                        + (random.random() < JUMP_P) * (random.random() * OUT_SIZE_H)) #coordinates of the start of the line
-            x = random.randint(MIN_OFFSET, OUT_SIZE_W - IN_SIZE)
+                        + (random.random() < JUMP_P) * (random.random() * OUT_SIZE_H)/2) #coordinates of the start of the line
+            x = random.randint(MIN_OFFSET_X, OUT_SIZE_W - IN_SIZE)
             nums = random.randint(1, MAX_NUMS_LINE)
             for _ in range(nums):
 
@@ -89,8 +96,8 @@ def inline_img_gen(src_x, src_y):
                     temp_img_y[y:y+dy, x:x+dx] = np.where(img_res != 0, img_y + 1 , 0) #set num pixels to num+1
 
                 # x and y for new iter
-                x += int(dx + random.randint(MIN_OFFSET, 2 * MIN_OFFSET) + (random.random() < JUMP_P) * (random.random() * OUT_SIZE_W))
-                y += int(random.normalvariate(OFF_Y_MU, OFF_Y_SIGMA))
+                x += int(dx + random.normalvariate(OFF_X_MU, OFF_X_SIGMA) + (random.random() < JUMP_P) * (random.random() * OUT_SIZE_W))
+                y += int(random.normalvariate(OFF_Y_MU, OFF_Y_SIGMA) + (random.random() < JUMP_P) * (random.random() * OUT_SIZE_H)/2)
 
                 
         new_img_y = pool2d(temp_img_y, stride=OUT_DOWNSCALING, padding=0, kernel_size=KERNEL_SIZE, pool_mode='max')
@@ -126,4 +133,3 @@ with open(filename, "wb") as f:
     pickle.dump((composite_imgs, composite_tags), f)
 
 print('Done')
-
