@@ -45,7 +45,7 @@ mnist = tf.keras.datasets.mnist
 def inline_img_gen(src_x, src_y):
     """
     inputs: 
-    src_x: an image dataset with IN_SIZE x IN_SIZE 
+    src_x: an image dataset of sizes IN_SIZE x IN_SIZE 
     src_y: tags of src_x
 
     outputs:
