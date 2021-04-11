@@ -4,6 +4,7 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 import random
 import pickle
+from tqdm import tqdm
 from max_pool import pool2d
 
 """
@@ -57,7 +58,7 @@ def inline_img_gen(src_x, src_y):
     composite_img_tags = np.zeros((TRAIN_LEN, OUT_SIZE_H//OUT_DOWNSCALING, OUT_SIZE_W//OUT_DOWNSCALING), dtype = 'uint8')
     composite_tags = np.zeros((TRAIN_LEN, OUT_SIZE_H//OUT_DOWNSCALING, OUT_SIZE_W//OUT_DOWNSCALING, 11), dtype = 'uint8')
 
-    for p in range(TRAIN_LEN):
+    for p in tqdm(range(TRAIN_LEN)):
         new_img_x = np.full((OUT_SIZE_H, OUT_SIZE_W), 255, dtype = 'uint8') 
         temp_img_y = np.zeros((OUT_SIZE_H, OUT_SIZE_W), dtype = 'uint8')
         #new_img_y = np.zeros((OUT_SIZE_W, OUT_SIZE_H)//OUT_DOWNSCALING, dtype = 'uint8')
@@ -104,10 +105,10 @@ def inline_img_gen(src_x, src_y):
         composite_imgs[p] = new_img_x
         composite_img_tags[p] = new_img_y
 
-        for i in range(11):
-            submask = np.zeros((11), dtype=np.uint8)
-            submask[i] = 1
-            composite_tags[composite_img_tags == i] = submask
+    for i in tqdm(range(11)):
+        submask = np.zeros((11), dtype=np.uint8)
+        submask[i] = 1
+        composite_tags[composite_img_tags == i] = submask
     return (composite_imgs/255, composite_img_tags, composite_tags)
 
 
