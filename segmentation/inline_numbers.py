@@ -6,6 +6,7 @@ import random
 import pickle
 from tqdm import tqdm
 from max_pool import pool2d
+import os
 
 """
 Uing mnist dataset to create composite images with numbers in multiple lines
@@ -42,6 +43,33 @@ mnist = tf.keras.datasets.mnist
 
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
 
+
+
+def load_images_from_folder(folder):
+    images = []
+    for filename in os.listdir(folder):
+        img = cv2.imread(os.path.join(folder, filename), 0)
+        if img is not None:
+            img = cv2.resize(img, (256, 256))
+            images.append(img)
+    return images
+
+BACKGROUNDS = load_images_from_folder('./backgrounds/descarga.jfif')
+
+cv2.imshow(' ', BACKGROUNDS)
+
+print('s')
+def get_random_background(width, height):
+    img = BACKGROUNDS[random.randint(0, len(BACKGROUNDS)-1)]
+    if img.shape[1]-width >= 0 and img.shape[0]-height >= 0:
+        x = random.randint(0, img.shape[1]-width)
+        y = random.randint(0, img.shape[0]-height)
+        return img[y:y+height, x:x+width]
+    else:
+        return cv2.resize(img, (width, height))
+
+
+
 def inline_img_gen(src_x, src_y):
     """
     inputs: 
@@ -59,7 +87,7 @@ def inline_img_gen(src_x, src_y):
     composite_tags = np.zeros((TRAIN_LEN, OUT_SIZE_H//OUT_DOWNSCALING, OUT_SIZE_W//OUT_DOWNSCALING, 11), dtype = 'uint8')
 
     for p in tqdm(range(TRAIN_LEN)):
-        new_img_x = np.full((OUT_SIZE_H, OUT_SIZE_W), 255, dtype = 'uint8') 
+        new_img_x = np.full((OUT_SIZE_H, OUT_SIZE_W), 255, dtype = 'uint16') 
         temp_img_y = np.zeros((OUT_SIZE_H, OUT_SIZE_W), dtype = 'uint8')
         #new_img_y = np.zeros((OUT_SIZE_W, OUT_SIZE_H)//OUT_DOWNSCALING, dtype = 'uint8')
 
@@ -102,6 +130,13 @@ def inline_img_gen(src_x, src_y):
 
                 
         new_img_y = pool2d(temp_img_y, stride=OUT_DOWNSCALING, padding=0, kernel_size=KERNEL_SIZE, pool_mode='max')
+
+        #add a background and noise to the image
+        new_img_x += get_random_background(OUT_SIZE_W, OUT_SIZE_H)
+        if random.randint(0, 1):
+            new_img_x = cv2.GaussianBlur(train_x[i], (random.randint(0,2)*2+1, random.randint(0,2)), 0)
+        new_img_x = np.clip(train_x[i], 0, 255).astype('uint8')
+
         composite_imgs[p] = new_img_x
         composite_img_tags[p] = new_img_y
 
