@@ -6,7 +6,7 @@ from compress_pickle import load
 
 model = tf.keras.models.load_model('./gen/model')
 
-img = cv2.imread('./gen/test3.jpg', 0)
+img = cv2.imread('./gen/test2.jpg', 0)
 img = cv2.resize(img, (192, 192))/255
 
 # (train_x, train_y, val_x, val_y) = load(
@@ -19,7 +19,7 @@ print(input.shape)
 
 inference = model(input)
 processed = np.argmax(inference, axis=3)
-processed = processed.reshape(-1, 96, 96, 1)
+processed = processed.reshape(-1, 192, 192, 1)
 # cv2.imshow('output', processed)
 
 fig = plt.figure(figsize=(8, 8))
