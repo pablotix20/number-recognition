@@ -21,7 +21,7 @@ OUT_SIZE_W = 192
 OUT_SIZE_H = 192
 
 OUT_DOWNSCALING = 2 #downscaling of output tags
-TRAIN_LEN = 10000
+TRAIN_LEN = 10
 
 MAX_SCALE_FACTOR = 1.25 #rescale number factor
 MIN_SCALE_FACTOR = 0.75
@@ -39,6 +39,9 @@ OFF_Y_SIGMA = 3
 
 JUMP_P = 0.2 #probability of jumping within a line and between lines
 
+NOISE_MAX_HALFWIDTH = 3 #size of the gaussian mask is at most 2*NOISE_MAX_HALFWIDTH +1
+NOISE_P = 0.5 #probability of adding gaussian noise 
+
 mnist = tf.keras.datasets.mnist
 
 (x_train, y_train), (x_test, y_test) = mnist.load_data()
@@ -54,12 +57,21 @@ def load_images_from_folder(folder):
             images.append(img)
     return images
 
-BACKGROUNDS = load_images_from_folder('./backgrounds/descarga.jfif')
+BACKGROUNDS = load_images_from_folder('./segmentation/backgrounds')
+print(BACKGROUNDS)
 
-cv2.imshow(' ', BACKGROUNDS)
+for im in BACKGROUNDS:
+    plt.figure()
+    plt.imshow(im, cmap = 'gray')
 
-print('s')
+
+#if not len(BACKGROUNDS):
+#    print('done')
+#    exit()
+
 def get_random_background(width, height):
+    if not len(BACKGROUNDS):
+        return np.zeros((width, height), dtype = 'uint8')
     img = BACKGROUNDS[random.randint(0, len(BACKGROUNDS)-1)]
     if img.shape[1]-width >= 0 and img.shape[0]-height >= 0:
         x = random.randint(0, img.shape[1]-width)
@@ -133,9 +145,12 @@ def inline_img_gen(src_x, src_y):
 
         #add a background and noise to the image
         new_img_x += get_random_background(OUT_SIZE_W, OUT_SIZE_H)
-        if random.randint(0, 1):
-            new_img_x = cv2.GaussianBlur(train_x[i], (random.randint(0,2)*2+1, random.randint(0,2)), 0)
-        new_img_x = np.clip(train_x[i], 0, 255).astype('uint8')
+
+        #add gaussian noise with probability NOISE_P
+        if random.uniform(0, 1) < NOISE_P:
+            new_img_x = cv2.GaussianBlur(new_img_x, (random.randint(1,NOISE_MAX_HALFWIDTH)*2+1, random.randint(0,NOISE_MAX_HALFWIDTH)*2+1), 0)
+        
+            new_img_x = np.clip(new_img_x, 0, 255).astype('uint8')
 
         composite_imgs[p] = new_img_x
         composite_img_tags[p] = new_img_y
@@ -163,6 +178,7 @@ for i in range(2):
         cur2.axis(False)
 plt.show()
 
+exit()
 
 filename = ".\composite_inline_dataset.pkl"
 with open(filename, "wb") as f:
