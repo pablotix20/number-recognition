@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 from compress_pickle import load
+from tools import show_inference
+from image_generation import gen_images, dataset
 
 model = tf.keras.models.load_model('./gen/model')
 
@@ -13,6 +15,9 @@ img = cv2.resize(img, (192, 192))/255
 #     './gen/mask_data.pickle', compression='lz4')
 
 input = np.array([img]).reshape((1, 192, 192, 1))
+
+(x, y) = dataset[1]
+input = gen_images(1, 192, 192, 1, 4, 8, x, y)[0]
 # input = val_x[:10]
 # cv2.imwrite('./gen/test.png', val_x[0]*255)
 print(input.shape)
@@ -22,16 +27,18 @@ processed = np.argmax(inference, axis=3)
 processed = processed.reshape(-1, 192, 192, 1)
 # cv2.imshow('output', processed)
 
-fig = plt.figure(figsize=(8, 8))
-fig.add_subplot(3, 2, 1)
-plt.imshow(input[0])
-fig.add_subplot(3, 2, 2)
-plt.imshow(processed[0])
-for i in range(3):
-    fig.add_subplot(3, 2, 3+i)
-    plt.imshow(inference[0, :, :, i*3: (i+1)*3])
-# plt.savefig('./gen/foo.png')
-plt.show()
+# fig = plt.figure(figsize=(8, 8))
+# fig.add_subplot(3, 2, 1)
+# plt.imshow(input[0])
+# fig.add_subplot(3, 2, 2)
+# plt.imshow(processed[0])
+# for i in range(3):
+#     fig.add_subplot(3, 2, 3+i)
+#     plt.imshow(inference[0, :, :, i*3: (i+1)*3])
+# # plt.savefig('./gen/foo.png')
+# plt.show()
+
+show_inference(input[0], inference[0])
 
 exit()
 

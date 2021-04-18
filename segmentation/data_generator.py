@@ -18,6 +18,7 @@ class DataGenerator(keras.utils.Sequence):
         self.batch_size = batch_size
         self.batches_per_epoch = batches_per_epoch
         self.validation = validation
+        self.current_batch = 0
 
         # self.pool = mp.Pool()
 
@@ -43,7 +44,9 @@ class DataGenerator(keras.utils.Sequence):
 
     def on_epoch_end(self):
         'Generate dataset after each epoch'
-        self.gen_data()
+        self.current_batch += 1
+        if (self.current_batch % 2) == 0:
+            self.gen_data()
 
     def apply_data(self, result):
         # (self.x, self.y) = result
@@ -54,7 +57,6 @@ class DataGenerator(keras.utils.Sequence):
             (x, y) = dataset[1]
         else:
             (x, y) = dataset[0]
-        
 
         if asyn and False:
             self.pool.apply_async(gen_images, args=(self.batch_size*self.batches_per_epoch, HEIGHT, WIDTH,

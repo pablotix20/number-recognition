@@ -6,7 +6,7 @@ import random as rnd
 from tqdm import tqdm
 from compress_pickle import dump
 import cv2
-from max_pool import pool2d
+from tools import pool2d
 from background import get_random_background
 
 TRAIN_LEN = 12
