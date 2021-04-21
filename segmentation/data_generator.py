@@ -2,9 +2,9 @@ from image_generation import gen_images, dataset
 from tensorflow import keras
 # import multiprocessing as mp
 
-WIDTH = 192
-HEIGHT = 192
-OUT_DOWNSCALING = 1
+WIDTH = 288
+HEIGHT = 288
+OUT_DOWNSCALING = 2
 
 BATCHES_PER_IMAGE = 10
 NUMBERS_PER_BATCH = 6

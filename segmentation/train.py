@@ -9,7 +9,7 @@ from tensorflow.python.keras.backend import reshape
 from data_generator import DataGenerator
 
 BATCH_SIZE = 10
-EPOCHS = 1
+EPOCHS = 120
 
 SEED = 6
 # Set random seeds
@@ -43,7 +43,7 @@ def get_model(img_size, num_classes):
 
     # Blocks 1, 2, 3 are identical apart from the feature depth.
     for filters in [64, 128, 256]:
-        x = layers.Dropout(0.1)(x)
+        # x = layers.Dropout(0.1)(x)
         x = layers.Activation("relu")(x)
         x = layers.SeparableConv2D(filters, 3, padding="same")(x)
         x = layers.BatchNormalization()(x)
@@ -63,8 +63,8 @@ def get_model(img_size, num_classes):
 
     ### [Second half of the network: upsampling inputs] ###
 
-    for filters in [256, 128, 64, 32]:
-        x = layers.Dropout(0.1)(x)
+    for filters in [256, 128, 64]:
+        # x = layers.Dropout(0.1)(x)
         x = layers.Activation("relu")(x)
         x = layers.Conv2DTranspose(filters, 3, padding="same")(x)
         x = layers.BatchNormalization()(x)
@@ -114,7 +114,9 @@ def get_model(img_size, num_classes):
 # output = layers.Activation('softmax')(inner_layer)
 
 # model = models.Model(inputs=input, outputs=output)
-model = get_model((192, 192), 11)
+
+# model = get_model((288, 288), 11)
+model = tf.keras.models.load_model('./gen/model')
 
 model.summary()
 tf.keras.utils.plot_model(model, show_shapes=True, to_file='./gen/model.png')
@@ -134,7 +136,7 @@ model.compile(optimizer="rmsprop",
 #           epochs=EPOCHS, validation_data=(val_x, val_y))
 
 training_generator = DataGenerator(BATCH_SIZE, 1500, False)
-validation_generator = DataGenerator(BATCH_SIZE, 200, True)
+validation_generator = DataGenerator(BATCH_SIZE, 300, True)
 model.fit(x=training_generator, validation_data=validation_generator,
           epochs=EPOCHS, use_multiprocessing=False)
 
@@ -170,4 +172,4 @@ for a in range(rows):
     plt.axis('off')
 fig.tight_layout()
 plt.savefig('./gen/val_out')
-plt.show()
+# plt.show()
