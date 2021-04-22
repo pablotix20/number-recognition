@@ -75,7 +75,7 @@ def get_random_background(width, height):
     img = BACKGROUNDS[random.randint(0, len(BACKGROUNDS)-1)]
     if img.shape[1]-width >= 0 and img.shape[0]-height >= 0:
         x = random.randint(0, img.shape[1]-width)
-        y = random.randint(0, img.shape[0]-height)
+        y = random.randint(0, img.shape[0]-eight)
         return img[y:y+height, x:x+width]
     else:
         return cv2.resize(img, (width, height))
