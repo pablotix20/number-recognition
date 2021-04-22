@@ -6,14 +6,14 @@ import random as rnd
 from tqdm import tqdm
 from compress_pickle import dump
 import cv2
-from max_pool import pool2d
+from tools import pool2d, show_images
 from background import get_random_background
 
 TRAIN_LEN = 12
 VAL_LEN = 12
-WIDTH = 192
-HEIGHT = 192
-OUT_DOWNSCALING = 1
+WIDTH = 288
+HEIGHT = 288
+OUT_DOWNSCALING = 2
 
 BATCHES_PER_IMAGE = 10
 NUMBERS_PER_BATCH = 6
@@ -25,17 +25,17 @@ dataset = mnist.load_data()
 def gen_images(TRAIN_LEN, HEIGHT, WIDTH, OUT_DOWNSCALING, MAX_NUMBER_BATCHES, MAX_NUMBERS_PER_BATCH, src_x, src_y):
     train_x = np.zeros((TRAIN_LEN, WIDTH, HEIGHT))
     mask_y = np.zeros(
-        (TRAIN_LEN, int(HEIGHT/OUT_DOWNSCALING), int(WIDTH/OUT_DOWNSCALING)))
+        (TRAIN_LEN, HEIGHT//OUT_DOWNSCALING, WIDTH//OUT_DOWNSCALING), dtype='uint8')
     # train_y = np.zeros((TRAIN_LEN, OUT_HEIGHT, OUT_WIDTH))
 
     for i in tqdm(range(TRAIN_LEN)):
-        mask = np.zeros((HEIGHT, WIDTH))
+        mask = np.zeros((HEIGHT//1, WIDTH//1))
         min_y = 0
 
         for n in range(MAX_NUMBER_BATCHES):
             y = rnd.randint(min_y, min_y + HEIGHT//2)
             x = rnd.randint(0, WIDTH//2)
-            resized_h = resized_w = int(28*(rnd.random()*2+.7))
+            resized_h = resized_w = int(28*(rnd.random()*2+.9))
 
             for m in range(MAX_NUMBERS_PER_BATCH):
                 resized_w = int(resized_w*(rnd.random()*.25+.875))
@@ -49,10 +49,15 @@ def gen_images(TRAIN_LEN, HEIGHT, WIDTH, OUT_DOWNSCALING, MAX_NUMBER_BATCHES, MA
                 # Choose random number
                 img = rnd.randint(0, src_x.shape[0]-1)
 
+                src = src_x[img]
+
                 # Make numbers thinner
-                kernel = np.ones((2, 2), np.uint8)
-                src = cv2.erode(src_x[img], kernel, iterations=1)
+                eroding_size = int(resized_h/28*2)
                 src = cv2.resize(src, (resized_w, resized_h))
+                kernel = np.ones((eroding_size, eroding_size), np.uint8)
+                eroded = cv2.erode(src, kernel, iterations=1)
+                # show_images([src, eroded], ['', ''])
+                src = eroded
 
                 # Check position inside bounds
                 if (x+resized_w+1) > train_x.shape[1] or (y+resized_h+1) > train_x.shape[2]:
@@ -64,15 +69,12 @@ def gen_images(TRAIN_LEN, HEIGHT, WIDTH, OUT_DOWNSCALING, MAX_NUMBER_BATCHES, MA
                     train_x[i, y:y+resized_h, x:x+resized_w] -= src * \
                         (rnd.random()/2+.5)
 
-                    # print((src > 0) & (mask[y:y + resized_h, x:x+resized_w, ] == 0))
-                    # print(src > 0 and mask[y:y + resized_h, x:x+resized_w, ] == 0)
-                    # mask[y:y + resized_h, x:x+resized_w, ] = np.where(
-                    #     (src > 0) &
-                    #     (mask[y:y + resized_h, x:x+resized_w, ] == 0),
-                    #     (src_y[img]+1), 0)
-
                     mask_zone = mask[y:y + resized_h, x:x+resized_w, ]
                     mask_zone[src > 10] = src_y[img]+1
+
+                    # mask[(y+resized_h//2)//OUT_DOWNSCALING,
+                    #      (x+resized_w//2)//OUT_DOWNSCALING] = src_y[img]+1
+
                     # mask_zone += np.where((src > 0),(src_y[img]+1), 0)
 
                     # mask[mask[y:y + resized_h, x:x+resized_w, ] == 0] = np.where(
@@ -81,18 +83,16 @@ def gen_images(TRAIN_LEN, HEIGHT, WIDTH, OUT_DOWNSCALING, MAX_NUMBER_BATCHES, MA
                     if min_y < y+resized_h:
                         min_y = y+resized_h
 
-        # TODO: Replaced by MaxPool
-        # mask_y[i] = cv2.resize(mask, (OUT_WIDTH, OUT_HEIGHT),
-        #                        interpolation=cv2.INTER_NEAREST)
         mask_y[i] = pool2d(mask, stride=OUT_DOWNSCALING, padding=0,
                            kernel_size=OUT_DOWNSCALING, pool_mode='max')
+        # mask_y[i] = mask
+
         # train_y[i] = pool2d(mask, stride=4, padding=0,
         #                    kernel_size=4, pool_mode='max')
         # train_x[i] += np.array(np.random.normal(0, 25, (WIDTH, HEIGHT)))
         train_x[i] += get_random_background(WIDTH, HEIGHT)
-        # if rnd.randint(0, 1) == 0:
-        #     # train_x[i] = 255-train_x[i]
-        #     train_x[i] = cv2.GaussianBlur(train_x[i], (3, 3), 0)
+        size = 1+rnd.randint(0, 3)*2
+        train_x[i] = cv2.GaussianBlur(train_x[i], (size, size), 0)
         train_x[i] = np.clip(train_x[i], 0, 255).astype('uint8')
 
     # train_y = np.zeros(

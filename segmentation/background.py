@@ -8,7 +8,7 @@ def load_images_from_folder(folder):
     for filename in os.listdir(folder):
         img = cv2.imread(os.path.join(folder, filename), 0)
         if img is not None:
-            img = cv2.resize(img, (256, 256))
+            img = cv2.resize(img, (512, 512))
             images.append(img)
     return images
 
