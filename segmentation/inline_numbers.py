@@ -98,8 +98,8 @@ def inline_img_gen(src_x, src_y):
 
                 if x+dx > OUT_SIZE_W or y+dy > OUT_SIZE_H:
                     break
-
-                if np.all(temp_img_y[y:y+dy, x:x+dx] == 0):
+               
+                if np.all(np.multiply(temp_img_y[y:y+dy, x:x+dx],img_res) == 0):
                     new_img_x[y:y+dy, x:x+dx] -= (img_res * 0.7).astype('uint8')
                     temp_img_y[y:y+dy, x:x+dx] = np.where(img_res != 0, img_y + 1 , 0) #set num pixels to num+1
 
@@ -147,5 +147,9 @@ exit()
 filename = ".\composite_inline_dataset.pkl"
 with open(filename, "wb") as f:
     pickle.dump((composite_imgs, composite_tags), f)
+
+filename = ".\composite_img_tags.pkl"
+with open(filename, "wb") as f:
+    pickle.dump(composite_img_tags, f)
 
 print('Done')
