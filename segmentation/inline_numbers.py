@@ -5,15 +5,16 @@ import matplotlib.pyplot as plt
 import random
 import pickle
 from tqdm import tqdm
-from max_pool import pool2d
+from tools import pool2d
 import os
+from background import get_random_background
 
 """
 Uing mnist dataset to create composite images with numbers in multiple lines
 """
 
-MAX_LINES = 4
-MAX_NUMS_LINE = 6
+MAX_LINES = 5
+MAX_NUMS_LINE = 9
 
 #img sizes
 IN_SIZE = 28 #square input images
@@ -48,40 +49,6 @@ mnist = tf.keras.datasets.mnist
 
 
 
-def load_images_from_folder(folder):
-    images = []
-    for filename in os.listdir(folder):
-        img = cv2.imread(os.path.join(folder, filename), 0)
-        if img is not None:
-            img = cv2.resize(img, (256, 256))
-            images.append(img)
-    return images
-
-BACKGROUNDS = load_images_from_folder('./segmentation/backgrounds')
-print(BACKGROUNDS)
-
-for im in BACKGROUNDS:
-    plt.figure()
-    plt.imshow(im, cmap = 'gray')
-
-
-#if not len(BACKGROUNDS):
-#    print('done')
-#    exit()
-
-def get_random_background(width, height):
-    if not len(BACKGROUNDS):
-        return np.zeros((width, height), dtype = 'uint8')
-    img = BACKGROUNDS[random.randint(0, len(BACKGROUNDS)-1)]
-    if img.shape[1]-width >= 0 and img.shape[0]-height >= 0:
-        x = random.randint(0, img.shape[1]-width)
-        y = random.randint(0, img.shape[0]-eight)
-        return img[y:y+height, x:x+width]
-    else:
-        return cv2.resize(img, (width, height))
-
-
-
 def inline_img_gen(src_x, src_y):
     """
     inputs: 
@@ -99,7 +66,7 @@ def inline_img_gen(src_x, src_y):
     composite_tags = np.zeros((TRAIN_LEN, OUT_SIZE_H//OUT_DOWNSCALING, OUT_SIZE_W//OUT_DOWNSCALING, 11), dtype = 'uint8')
 
     for p in tqdm(range(TRAIN_LEN)):
-        new_img_x = np.full((OUT_SIZE_H, OUT_SIZE_W), 255, dtype = 'uint16') 
+        new_img_x = get_random_background(OUT_SIZE_H, OUT_SIZE_W).astype(np.int16)
         temp_img_y = np.zeros((OUT_SIZE_H, OUT_SIZE_W), dtype = 'uint8')
         #new_img_y = np.zeros((OUT_SIZE_W, OUT_SIZE_H)//OUT_DOWNSCALING, dtype = 'uint8')
 
@@ -132,8 +99,8 @@ def inline_img_gen(src_x, src_y):
                 if x+dx > OUT_SIZE_W or y+dy > OUT_SIZE_H:
                     break
 
-                if np.all(new_img_x[y:y+dy, x:x+dx] == 255):
-                    new_img_x[y:y+dy, x:x+dx] = cv2.bitwise_not(img_res)
+                if np.all(temp_img_y[y:y+dy, x:x+dx] == 0):
+                    new_img_x[y:y+dy, x:x+dx] -= (img_res * 0.7).astype('uint8')
                     temp_img_y[y:y+dy, x:x+dx] = np.where(img_res != 0, img_y + 1 , 0) #set num pixels to num+1
 
                 # x and y for new iter
@@ -143,14 +110,11 @@ def inline_img_gen(src_x, src_y):
                 
         new_img_y = pool2d(temp_img_y, stride=OUT_DOWNSCALING, padding=0, kernel_size=KERNEL_SIZE, pool_mode='max')
 
-        #add a background and noise to the image
-        new_img_x += get_random_background(OUT_SIZE_W, OUT_SIZE_H)
-
         #add gaussian noise with probability NOISE_P
         if random.uniform(0, 1) < NOISE_P:
             new_img_x = cv2.GaussianBlur(new_img_x, (random.randint(1,NOISE_MAX_HALFWIDTH)*2+1, random.randint(0,NOISE_MAX_HALFWIDTH)*2+1), 0)
         
-            new_img_x = np.clip(new_img_x, 0, 255).astype('uint8')
+        new_img_x = np.clip(new_img_x, 0, 255).astype('uint8')
 
         composite_imgs[p] = new_img_x
         composite_img_tags[p] = new_img_y
