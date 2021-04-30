@@ -22,7 +22,7 @@ OUT_SIZE_W = 192
 OUT_SIZE_H = 192
 
 OUT_DOWNSCALING = 2 #downscaling of output tags
-TRAIN_LEN = 10
+TRAIN_LEN = 10000
 
 MAX_SCALE_FACTOR = 1.25 #rescale number factor
 MIN_SCALE_FACTOR = 0.75
@@ -96,9 +96,9 @@ def inline_img_gen(src_x, src_y):
                 dy = int(scale_y * IN_SIZE)
                 img_res = cv2.resize(img_x, (dx, dy))
 
-                if x+dx > OUT_SIZE_W or y+dy > OUT_SIZE_H:
+                if x+dx > OUT_SIZE_W or y+dy > OUT_SIZE_H or y < 0 or x < 0:
                     break
-               
+
                 if np.all(np.multiply(temp_img_y[y:y+dy, x:x+dx],img_res) == 0):
                     new_img_x[y:y+dy, x:x+dx] -= (img_res * 0.7).astype('uint8')
                     temp_img_y[y:y+dy, x:x+dx] = np.where(img_res != 0, img_y + 1 , 0) #set num pixels to num+1
@@ -141,8 +141,6 @@ for i in range(2):
         cur2.set_title(i*5 + j)
         cur2.axis(False)
 plt.show()
-
-exit()
 
 filename = ".\composite_inline_dataset.pkl"
 with open(filename, "wb") as f:
