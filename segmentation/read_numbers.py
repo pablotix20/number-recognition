@@ -5,13 +5,12 @@ import cv2
 
 X_OFF_WEIGHT = 1
 Y_OFF_WEIGHT = 4
-MAX_SQRD_DISTANCE = 30**2
+MAX_SQ_DISTANCE = 30**2
 
 MAX_LINES = 7
 MIN_SIZE = 10
-K = 2 #number o lines to check per assumed lines
 
-img_tags = load('composite_img_tags.pkl')
+img_tags = load('composite_img_tags.pkl')[:10]
 
 #print(img_tags.shape)
 
@@ -46,11 +45,49 @@ def read_numbers(img_tags):
             val_and_centroids[j] = (value, ny, nx)
             j+=1
     
+    num_stats = np.array(sorted(val_and_centroids[:j], key=lambda x: x[2]))
+
+    first = 1
+    nums = []
+
+    while(len(num_stats)):
+        if first:
+            _val, _y, _x = num_stats[0]
+            np.delete(num_stats, 0, axis=0)
+        else:
+            _val, _y, _x = next_val, next_y, next_x
+        
+        all_x = num_stats[:,2] #vector of all remaining numbers x coordinates
+        all_y = num_stats[:,1] #vector of all remaining numbers y coordinates
+ 
+        distances_sq = ((all_x - _x)*X_OFF_WEIGHT)**2 + ((all_y - _y)*Y_OFF_WEIGHT)**2
+
+        min_idx = distances_sq.argmin()
+
+        next_val, next_y, next_x = num_stats[min_idx]
+        
+        if first:
+            nums.append(str(_val))
+
+        if distances_sq[min_idx] < MAX_SQ_DISTANCE and _x < next_x:
+            nums[-1] += str(next_val)
+            np.delete(num_stats, min_idx, axis=0)
+            first = 0
+        else: 
+            nums.append(str(next_val))
+            first = 1
+
+    if first: #take into account last number if it would have been a first num, also fixes one num imgs
+        nums.append(str(num_stats[j-1][0]))
+
+    plt.figure()
+    plt.imshow(img_tags)
+    plt.title(f'{nums}')
+    return
 
     l = min(K * j**.5 + 1, MAX_LINES) #assume numbers form a square for simplicity, at least one line
     num_stats = sorted(val_and_centroids[:j], key=lambda x: x[2]//(h/l)*h+x[1])
 
-    nums = []
     first = 1
 
     print(j)
@@ -67,6 +104,7 @@ def read_numbers(img_tags):
             nums[-1] += str(next_val)
         else:
             first = 1
+
     if first: #take into account last number if it would have been a first num, also fixes one num imgs
         nums.append(str(num_stats[j-1][0]))
 
