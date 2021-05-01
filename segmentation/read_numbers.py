@@ -82,8 +82,10 @@ def read_numbers(img_tags):
     plt.imshow(img_tags)
     plt.title(f'{nums}')
     return nums, pos
-
- #Test samples
+  
+exit()
+  
+#Test samples
 img_tags = load('composite_img_tags.pkl')[10:]
   
 for im in img_tags:
