@@ -9,7 +9,14 @@ MAX_SQ_DISTANCE = 25**2
 
 MIN_SIZE = 10
 
-img_tags = load('composite_img_tags.pkl')[:10]
+OPENING = 0
+OPENING_KERNEL = np.array(
+                [[0,1,0],
+                 [1,1,1],
+                 [0,1,0]],
+                 np.uint8)
+
+img_tags = load('composite_img_tags.pkl')
 
 def nearest_nonzero_idx(a, x,y):
     r,c = np.nonzero(a) #indeices of nonzero elemenyts in array a
@@ -20,6 +27,8 @@ def nearest_nonzero_idx(a, x,y):
 def read_numbers(img_tags):
     h,w = img_tags.shape
     _, img_bin = cv2.threshold(img_tags,0,255,cv2.THRESH_BINARY)
+    if OPENING: img_bin = cv2.morphologyEx(img_bin, cv2.MORPH_OPEN, OPENING_KERNEL)
+
     num_nums, img_labels, stats, centroids = cv2.connectedComponentsWithStats(img_bin)
     
     val_and_centroids = np.zeros((num_nums, 3), np.int16)
