@@ -9,7 +9,7 @@ MAX_SQ_DISTANCE = 25**2
 
 MIN_SIZE = 10
 
-OPENING = 0
+OPENING = False
 OPENING_KERNEL = np.array(
                 [[0,1,0],
                  [1,1,1],
