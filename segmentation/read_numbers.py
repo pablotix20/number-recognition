@@ -16,8 +16,6 @@ OPENING_KERNEL = np.array(
                  [0,1,0]],
                  np.uint8)
 
-img_tags = load('composite_img_tags.pkl')
-
 def nearest_nonzero_idx(a, x,y):
     r,c = np.nonzero(a) #indeices of nonzero elemenyts in array a
     min_idx = ((r - x)**2 + (c - y)**2).argmin()
@@ -85,7 +83,10 @@ def read_numbers(img_tags):
     plt.title(f'{nums}')
     return nums, pos
 
+ #Test samples
+img_tags = load('composite_img_tags.pkl')[10:]
+  
 for im in img_tags:
-    n, p = read_numbers(im)
+    read_numbers(im)
      
 plt.show()
