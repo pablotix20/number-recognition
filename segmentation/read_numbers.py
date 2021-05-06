@@ -29,7 +29,7 @@ def read_numbers(img_tags):
     _, img_bin = cv2.threshold(img_tags,0,255,cv2.THRESH_BINARY)
     if OPENING: img_bin = cv2.morphologyEx(img_bin, cv2.MORPH_OPEN, OPENING_KERNEL)
 
-    num_nums, img_labels, stats, centroids = cv2.connectedComponentsWithStats(img_bin)
+    num_nums, img_labels, stats, centroids = cv2.connectedComponentsWithStats(img_bin, connectivity  = 4)
     
     val_and_centroids = np.zeros((num_nums, 3), np.int16)
 
