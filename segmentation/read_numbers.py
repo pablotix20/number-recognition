@@ -38,7 +38,7 @@ def read_numbers(img_tags):
             nx, ny = centroids[i]
             y, x = nearest_nonzero_idx(img_tags, ny, nx)
 
-            value = img_tags[y, x] - 1 # add -1 to get the real value
+            value = img_tags[y, x] - 1 # add -1 to get the real value 
             val_and_centroids[j] = (value, ny, nx)
             j+=1
 
