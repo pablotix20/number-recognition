@@ -22,7 +22,7 @@ OUT_SIZE_W = 192
 OUT_SIZE_H = 192
 
 OUT_DOWNSCALING = 2 #downscaling of output tags
-TRAIN_LEN = 10000
+TRAIN_LEN = 10
 
 MAX_SCALE_FACTOR = 1.25 #rescale number factor
 MIN_SCALE_FACTOR = 0.75
@@ -141,6 +141,8 @@ for i in range(2):
         cur2.set_title(i*5 + j)
         cur2.axis(False)
 plt.show()
+
+exit()
 
 filename = ".\composite_inline_dataset.pkl"
 with open(filename, "wb") as f:
