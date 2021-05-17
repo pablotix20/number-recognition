@@ -6,6 +6,7 @@ import cv2
 X_OFF_WEIGHT = 1
 Y_OFF_WEIGHT = 3
 MAX_SQ_DISTANCE = 25**2
+OUT_DOWNSCALING = 2
 
 dx ,dy = 3, 3 #extra for rectangles
 
@@ -64,8 +65,8 @@ def read_numbers(img, img_labels_bin):
         while(len(num_stats)):
             if first:
                 _val, _y, _x, _top_y, _top_x, _bot_y, _bot_x = num_stats[0]
-                _bot = [_bot_x*2+dx, _bot_y*2+dy]
-                _top = [_top_x*2-dx, _top_y*2-dy]
+                _bot = [_bot_x*OUT_DOWNSCALING+dx, _bot_y*OUT_DOWNSCALING+dy]
+                _top = [_top_x*OUT_DOWNSCALING-dx, _top_y*OUT_DOWNSCALING-dy]
                 num_stats = np.delete(num_stats, 0, axis=0)
             else:
                 _val, _y, _x, _top, _bot = next_val, next_y, next_x, next_top, next_bot
@@ -83,8 +84,8 @@ def read_numbers(img, img_labels_bin):
                 min_idx = distances_sq.argmin()
 
                 next_val, next_y, next_x, next_top_y, next_top_x, next_bot_y, next_bot_x = num_stats[min_idx]
-                next_top = [next_top_x*2-dx, next_top_y*2-dy]
-                next_bot = [next_bot_x*2+dx, next_bot_y*2+dy]
+                next_top = [next_top_x*OUT_DOWNSCALING-dx, next_top_y*OUT_DOWNSCALING-dy]
+                next_bot = [next_bot_x*OUT_DOWNSCALING+dx, next_bot_y*OUT_DOWNSCALING+dy]
 
                 if distances_sq[min_idx] < MAX_SQ_DISTANCE and _x < next_x:
                     nums[-1] += str(next_val)
@@ -109,7 +110,7 @@ def read_numbers(img, img_labels_bin):
 
         return nums, pos
   
-exit()
+
   
 #Test samples
 img_tags = load('composite_img_tags.pkl')[:10]
