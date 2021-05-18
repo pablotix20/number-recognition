@@ -4,9 +4,11 @@ import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
+from read_numbers import read_numbers, binarize
 from compress_pickle import load
 from tools import show_inference, classify_numbers
 from image_generation import gen_images, dataset
+
 
 model = tf.keras.models.load_model('./gen/model')
 
@@ -23,10 +25,11 @@ input = np.array([img]).reshape((1, 288, 288, 1))
 
 # input = val_x[:10]
 # cv2.imwrite('./gen/test.png', val_x[0]*255)
-print(input.shape)
 
 inference = model(input)
-processed = np.argmax(inference, axis=3)
+
+processed = np.argmax(inference[0], axis=2)
+
 # processed = processed.reshape(-1, 192, 192, 1)
 # cv2.imshow('output', processed)
 
@@ -42,7 +45,12 @@ processed = np.argmax(inference, axis=3)
 # plt.show()
 
 # classify_numbers(inference[0])
+
 show_inference(input[0], inference[0])
+
+bin_labels = binarize(inference[0])
+read_numbers(img, bin_labels)
+
 exit()
 
 rows = 4
