@@ -6,7 +6,8 @@ import cv2
 X_OFF_WEIGHT = 1
 Y_OFF_WEIGHT = 3
 MAX_SQ_DISTANCE = 25**2
-OUT_DOWNSCALING = 2
+OUT_DOWNSCALING_X = 2
+OUT_DOWNSCALING_Y = 2
 
 dx ,dy = 3, 3 #extra for rectangles
 
@@ -25,7 +26,20 @@ def nearest_nonzero_idx(a, x,y):
     return r[min_idx], c[min_idx]
 
 
-def read_numbers(img, img_labels_bin):
+def binarize(inference):
+    """
+    inference: n*m*11
+    """
+    processed = np.argmax(inference, axis=2)
+    layers = np.zeros_like(inference).astype(np.uint8)
+    for i in range(11):
+        layers[:,:,i] = processed==i
+
+    return layers
+
+
+
+def read_numbers(img, img_labels_bin, title = None):
     """
     img is the original image, either in color or greyscale
     img_labels_bis is the binarized output of the CNN
@@ -72,8 +86,8 @@ def read_numbers(img, img_labels_bin):
         while(len(num_stats)):
             if first:
                 _val, _y, _x, _top_y, _top_x, _bot_y, _bot_x = num_stats[0]
-                _bot = [_bot_x*OUT_DOWNSCALING+dx, _bot_y*OUT_DOWNSCALING+dy]
-                _top = [_top_x*OUT_DOWNSCALING-dx, _top_y*OUT_DOWNSCALING-dy]
+                _bot = [_bot_x*OUT_DOWNSCALING_X+dx, _bot_y*OUT_DOWNSCALING_Y+dy]
+                _top = [_top_x*OUT_DOWNSCALING_X-dx, _top_y*OUT_DOWNSCALING_Y-dy]
                 num_stats = np.delete(num_stats, 0, axis=0)
             else:
                 _val, _y, _x, _top, _bot = next_val, next_y, next_x, next_top, next_bot
@@ -91,8 +105,8 @@ def read_numbers(img, img_labels_bin):
                 min_idx = distances_sq.argmin()
 
                 next_val, next_y, next_x, next_top_y, next_top_x, next_bot_y, next_bot_x = num_stats[min_idx]
-                next_top = [next_top_x*OUT_DOWNSCALING-dx, next_top_y*OUT_DOWNSCALING-dy]
-                next_bot = [next_bot_x*OUT_DOWNSCALING+dx, next_bot_y*OUT_DOWNSCALING+dy]
+                next_top = [next_top_x*OUT_DOWNSCALING_X-dx, next_top_y*OUT_DOWNSCALING_Y-dy]
+                next_bot = [next_bot_x*OUT_DOWNSCALING_X+dx, next_bot_y*OUT_DOWNSCALING_Y+dy]
 
                 if distances_sq[min_idx] < MAX_SQ_DISTANCE and _x < next_x:
                     nums[-1] += str(next_val)
@@ -115,19 +129,20 @@ def read_numbers(img, img_labels_bin):
         plt.figure()
         plt.imshow(img)
         plt.axis(False)
-        plt.title(f'{nums}')
+        if title is not None:
+            plt.title(title)
 
+        plt.show()
         return nums, pos
   
 
-exit()
   
-#Test samples
-img_tags = load('composite_img_tags.pkl')[:10]
+##Test samples
+#img_tags = load('composite_img_tags.pkl')[:10]
 
-(img_set, img_tags) = load('composite_inline_dataset.pkl')
+#(img_set, img_tags) = load('composite_inline_dataset.pkl')
 
-for im, tags in zip(img_set[:10], img_tags[:10]):
-    read_numbers(im, tags)
+#for im, tags in zip(img_set[:10], img_tags[:10]):
+#    read_numbers(im, tags)
 
-plt.show()
+#plt.show()
