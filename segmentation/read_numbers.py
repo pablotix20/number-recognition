@@ -26,6 +26,13 @@ def nearest_nonzero_idx(a, x,y):
 
 
 def read_numbers(img, img_labels_bin):
+    """
+    img is the original image, either in color or greyscale
+    img_labels_bis is the binarized output of the CNN
+
+    Outputs the tags and its bounding boxes. 
+    Shows the image with bounding boxes and tags.
+    """
     j = 0
     val_and_centroids = []
 
@@ -94,23 +101,26 @@ def read_numbers(img, img_labels_bin):
                     pos[-1][-1] = next_bot
                 else: 
                     first = 1
-
-        img = cv2.merge([img, img, img])
+        
+        if len(img.shape) == 2:
+            img = cv2.merge([img, img, img])
         
         for n, (a,b) in zip(nums,pos):
-            img = cv2.rectangle(img, tuple(a), tuple(b), color = (0, 1, 0), thickness = 1)
-            cv2.putText(img, str(n), (a[0], a[1]-5), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0.1,0.9,0.1), 1)
+            img = cv2.rectangle(img, tuple(a), tuple(b), color = (0.15,0.9,0.1), thickness = 1)
+            cv2.putText(img, str(n), (a[0], a[1]-5), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0.15,0.9,0.1), 1)
 
         #image = cv2.rectangle(image, (x, y), (x + w, y + h), (36,255,12), 1)
         #cv2.putText(image, 'Fedex', (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36,255,12), 2)
 
         plt.figure()
         plt.imshow(img)
+        plt.axis(False)
         plt.title(f'{nums}')
 
         return nums, pos
   
 
+exit()
   
 #Test samples
 img_tags = load('composite_img_tags.pkl')[:10]
