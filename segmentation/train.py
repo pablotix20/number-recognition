@@ -9,7 +9,7 @@ from tensorflow.python.keras.backend import reshape
 from data_generator import DataGenerator
 
 BATCH_SIZE = 10
-EPOCHS = 120
+EPOCHS = 180
 
 SEED = 6
 # Set random seeds
@@ -93,29 +93,59 @@ def get_model(img_size, num_classes):
     return model
 
 
-# input = layers.Input(shape=(128, 128, 1))
-# inner_layer = layers.Conv2D(15, 5)(input)
-# inner_layer = layers.MaxPooling2D(pool_size=(2, 2))(inner_layer)
-# inner_layer = layers.BatchNormalization()(inner_layer)
-# inner_layer = layers.ReLU()(inner_layer)
+def get_model_new(img_size, num_classes):
+    inputs = tf.keras.Input(shape=img_size + (1,))
 
-# # inner_layer = layers.Conv2D(11, 21)(inner_layer)
-# # inner_layer = layers.MaxPooling2D(pool_size=(2,2))(inner_layer)
-# # inner_layer = layers.BatchNormalization()(inner_layer)
-# # inner_layer = layers.ReLU()(inner_layer)
+    ### [First half of the network: downsampling inputs] ###
 
-# # # inner_layer = layers.Conv2D(5, 3)(inner_layer)
-# inner_layer = layers.Flatten()(inner_layer)
-# inner_layer = layers.Dense(1024, activation='relu')(inner_layer)
-# # inner_layer = layers.Dropout(0.2)(inner_layer)
-# inner_layer = layers.Dense(11*32*32)(inner_layer)
-# inner_layer = layers.Reshape((32, 32, -1))(inner_layer)
-# # inner_layer = layers.Conv2D(3, 3)(inner_layer)
-# output = layers.Activation('softmax')(inner_layer)
+    # Entry block
+    x = layers.Conv2D(64, 5, strides=2, padding="same")(inputs)
+    x = layers.BatchNormalization()(x)
+    x = layers.Activation("relu")(x)
 
-# model = models.Model(inputs=input, outputs=output)
+    previous_block_activation = x  # Set aside residual
+    size_outputs = [x]
 
-# model = get_model((288, 288), 11)
+    # Blocks 1, 2, 3 are identical apart from the feature depth.
+    for i, filters in enumerate([64, 128, 256]):
+        # x = layers.Dropout(0.1)(x)
+        x = layers.SeparableConv2D(filters, 3, strides=2, padding="same")(x)
+        x = layers.BatchNormalization()(x)
+        x = layers.Activation("relu")(x)
+        # x = layers.MaxPooling2D(3, strides=2, padding="same")(x)
+
+        # Project residual
+        residual = layers.Conv2D(filters, 1, strides=2, padding="same")(
+            previous_block_activation)
+        x = layers.add([x, residual])  # Add back residual
+        previous_block_activation = x  # Set aside next residual
+        size_outputs.append(x)
+
+    ### [Second half of the network: upsampling inputs] ###
+
+    for i, filters in enumerate([256, 128, 64]):
+        # x = layers.Dropout(0.1)(x)
+        x = layers.Conv2DTranspose(filters, 3, padding="same")(x)
+        x = layers.BatchNormalization()(x)
+        x = layers.Activation("relu")(x)
+        x = layers.UpSampling2D(2)(x)
+
+        # Project residual
+        # residual = layers.UpSampling2D(2)(previous_block_activation)
+        # residual = layers.Conv2D(filters, 1, padding="same")(residual)
+        residual2 = layers.Conv2D(
+            filters, 1, padding="same")(size_outputs[-2-i])
+        x = layers.add([x,  residual2])  # Add back residual
+        previous_block_activation = x  # Set aside next residual
+
+    # Add a per-pixel classification layer
+    outputs = layers.Conv2D(
+        num_classes, 3, activation="softmax", padding="same")(x)
+    model = tf.keras.Model(inputs, outputs)
+    return model
+
+
+# model = get_model_new((288, 288), 11)
 model = tf.keras.models.load_model('./gen/model')
 
 model.summary()

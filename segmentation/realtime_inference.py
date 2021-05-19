@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import cv2
 from compress_pickle import load
 from tools import classify_numbers
+from read_numbers import read_numbers, binarize
 
 model = tf.keras.models.load_model('./gen/model')
 testimg = cv2.imread('./gen/photo_2021-04-05_17-14-39.jpg', 0)
@@ -27,11 +28,14 @@ def inference(img):
     inference = model(input)[0]
     processed = np.argmax(inference, axis=2)
     unique, counts = np.unique(processed, return_counts=True)
-    print(dict(zip(unique, counts)))
+    # print(dict(zip(unique, counts)))
 
-    _, output = classify_numbers(resized, inference)
+    _, digits = classify_numbers(resized, inference)
 
-    return processed, output
+    bin_labels = binarize(inference)
+    _, _, numbers = read_numbers(resized, bin_labels, show=False)
+
+    return processed, digits, numbers
 
 
 cam = cv2.VideoCapture(0)
@@ -44,13 +48,14 @@ while True:
         print("failed to grab frame")
         break
     cv2.imshow("cam", frame)
-    (inf, output) = inference(frame)
+    (inf, digits, numbers) = inference(frame)
     # print(output)
     inf = inf.reshape(144, 144, 1)*25.5
     inf = cv2.resize(inf, (512, 512))
     cv2.imshow('Inference', inf)
-    print(output.shape)
-    cv2.imshow('Output', cv2.resize(output, (512, 512)))
+    # print(digits.shape)
+    cv2.imshow('Digits', cv2.resize(digits, (512, 512)))
+    cv2.imshow('Numbers', cv2.resize(numbers, (512, 512)))
     # print(frame)
 
     k = cv2.waitKey(1)

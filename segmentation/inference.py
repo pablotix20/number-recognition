@@ -12,7 +12,7 @@ from image_generation import gen_images, dataset
 
 model = tf.keras.models.load_model('./gen/model')
 
-img = cv2.imread('./gen/test2.jpg', 0)
+img = cv2.imread('./gen/test5.jpg', 0)
 img = cv2.resize(img, (288, 288))/255
 
 # (train_x, train_y, val_x, val_y) = load(

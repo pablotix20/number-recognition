@@ -74,8 +74,8 @@ def drawBoundingBox(image, label, box):
                 color=(255, 0, 0), thickness=1)
 
 
-NUM_THRESHOLD = 0.2
-MIN_SIZE = 10
+NUM_THRESHOLD = 0.4
+MIN_SIZE = 20
 
 
 def classify_numbers(input, inference):

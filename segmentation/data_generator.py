@@ -45,7 +45,7 @@ class DataGenerator(keras.utils.Sequence):
     def on_epoch_end(self):
         'Generate dataset after each epoch'
         self.current_batch += 1
-        if (self.current_batch % 2) == 0:
+        if (self.current_batch % 4) == 0:
             self.gen_data()
 
     def apply_data(self, result):
