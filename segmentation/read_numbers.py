@@ -120,8 +120,8 @@ def read_numbers(img, img_labels_bin, title = None):
             img = cv2.merge([img, img, img])
         
         for n, (a,b) in zip(nums,pos):
-            img = cv2.rectangle(img, tuple(a), tuple(b), color = (0.15,0.9,0.1), thickness = 1)
-            cv2.putText(img, str(n), (a[0], a[1]-5), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (0.15,0.9,0.1), 1)
+            img = cv2.rectangle(img, tuple(a), tuple(b), color = (1,0.2,0), thickness = 1)
+            cv2.putText(img, str(n), (a[0], a[1]-5), cv2.FONT_HERSHEY_SIMPLEX, 0.4, (1,0.2,0.1), 1)
 
         #image = cv2.rectangle(image, (x, y), (x + w, y + h), (36,255,12), 1)
         #cv2.putText(image, 'Fedex', (x, y-10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (36,255,12), 2)
