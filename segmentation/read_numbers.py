@@ -47,7 +47,7 @@ def read_numbers(img, img_labels_bin, title=None, show=True):
     Outputs the tags and its bounding boxes. 
     Shows the image with bounding boxes and tags.
     """
-    j = 0
+    j = 0 #number of numbers detected
     val_and_centroids = []
 
     for n in range(10):
@@ -75,14 +75,13 @@ def read_numbers(img, img_labels_bin, title=None, show=True):
                     [n, ny, nx, s[1], s[0], s[1]+s[3], s[0]+s[2]])
 
                 j += 1
-
-    if j != 0 or True:
+    nums = []
+    pos = []
+    if j != 0:
         num_stats = np.array(
             sorted(val_and_centroids[:j], key=lambda x: x[2])).astype(np.uint16)
 
         first = 1
-        nums = []
-        pos = []
 
         next_val, next_y, next_x, next_bot, next_top = \
             None, None, None, None, None
@@ -127,7 +126,7 @@ def read_numbers(img, img_labels_bin, title=None, show=True):
                     pos[-1][-1] = next_bot
                 else:
                     first = 1
-
+        
         # if len(img.shape) == 2:
         #     img = cv2.merge([img, img, img])
 
@@ -154,7 +153,10 @@ def read_numbers(img, img_labels_bin, title=None, show=True):
     return nums, pos, img
 
 
-# Test samples
+## uncomment to see training samples
+
+
+##Test samples
 #img_tags = load('composite_img_tags.pkl')[:10]
 
 #(img_set, img_tags) = load('composite_inline_dataset.pkl')
