@@ -48,8 +48,8 @@ processed = np.argmax(inference[0], axis=2)
 
 show_inference(input[0], inference[0])
 
-bin_labels = binarize(inference[0])
-read_numbers(img, bin_labels)
+# bin_labels = binarize(inference[0])
+# read_numbers(img, bin_labels)
 
 exit()
 

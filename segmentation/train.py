@@ -9,7 +9,7 @@ from tensorflow.python.keras.backend import reshape
 from data_generator import DataGenerator
 
 BATCH_SIZE = 10
-EPOCHS = 180
+EPOCHS = 60
 
 SEED = 6
 # Set random seeds
@@ -144,7 +144,7 @@ def get_model_new(img_size, num_classes):
     model = tf.keras.Model(inputs, outputs)
     return model
 
-
+# Uncomment one to choose from A) Create a new model B) Train from the existing model
 # model = get_model_new((288, 288), 11)
 model = tf.keras.models.load_model('./gen/model')
 
@@ -153,9 +153,6 @@ tf.keras.utils.plot_model(model, show_shapes=True, to_file='./gen/model.png')
 
 # opt = tf.keras.optimizers.Adam(learning_rate=0.0002)
 
-# model.compile(loss='categorical_crossentropy', metrics=['accuracy'])
-# train_count = int(train_x.shape[0]*TRAIN_LEN)
-# TODO: Sparse categorical
 model.compile(optimizer="rmsprop",
               loss="categorical_crossentropy", metrics=['accuracy'])
 
